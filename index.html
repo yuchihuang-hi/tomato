@@ -1,0 +1,362 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+    <meta charset="UTF-8">
+    <title>Yuqi's Cozy Station</title>
+    
+    <style>
+        :root {
+            --bg: #fdfaf5;
+            --primary: #e28e8e;
+            --primary-light: #f9d5d5;
+            --water: #a2d2ff;
+            --text: #5d5d5d;
+        }
+
+        body {
+            display: flex; justify-content: center; align-items: center;
+            min-height: 100vh; margin: 0; background-color: var(--bg);
+            font-family: "PingFang TC", "Microsoft JhengHei", sans-serif;
+            color: var(--text);
+        }
+
+        .main-layout { display: flex; gap: 40px; align-items: flex-start; max-width: 1200px; padding: 20px; }
+
+        .water-card, .timer-card, .list-card {
+            background: white; border-radius: 30px; box-shadow: 0 10px 30px rgba(0,0,0,0.03);
+        }
+
+        /* 左側：水杯與補水清單 */
+        .water-card { padding: 25px; width: 220px; text-align: center; display: flex; flex-direction: column; max-height: 650px; }
+        .cup-container {
+            width: 80px; height: 180px; border: 4px solid #f0f0f0;
+            border-bottom-left-radius: 20px; border-bottom-right-radius: 20px;
+            margin: 15px auto; position: relative; overflow: hidden;
+            flex-shrink: 0;
+        }
+        .water-fill {
+            position: absolute; bottom: 0; width: 100%;
+            background: var(--water); transition: height 0.5s ease-out; height: 0%;
+        }
+        .water-history-area {
+            margin-top: 20px; border-top: 1px dashed var(--water); padding-top: 15px;
+            overflow-y: auto; text-align: left;
+        }
+
+        /* 中間：番茄鐘 */
+        .timer-card { padding: 40px; width: 380px; text-align: center; box-shadow: 0 15px 50px rgba(0,0,0,0.05); }
+        .btn-group { margin-bottom: 35px; } 
+
+        .tomato-loader {
+            width: 130px; height: 130px; margin: 0 auto 30px;
+            position: relative; border: 4px dashed var(--primary-light);
+            border-radius: 50%; display: flex; align-items: center; justify-content: center;
+            font-size: 55px; overflow: hidden;
+        }
+        .tomato-fill {
+            position: absolute; bottom: 0; width: 100%;
+            background: var(--primary); opacity: 0.3; height: 0%; transition: height 1s linear;
+        }
+
+        #timer { font-size: 4.5rem; font-weight: 300; margin: 15px 0; color: var(--primary); }
+        input {
+            width: 85%; padding: 12px; border: 1px solid #f0f0f0; border-radius: 15px;
+            margin-bottom: 20px; outline: none; background: #fafafa; text-align: center;
+        }
+
+        .btn-group button {
+            padding: 10px 18px; border: none; border-radius: 12px; cursor: pointer; margin: 0 5px;
+            background: #f0f0f0; transition: 0.2s; font-size: 0.9rem;
+        }
+        button.active { background: var(--primary); color: white; }
+        .main-btn { width: 90%; padding: 15px; background: var(--primary); color: white; border: none; border-radius: 20px; font-size: 1.1rem; margin-top: 15px; cursor: pointer; }
+
+        /* 互動按鈕 */
+        .interaction-group { margin-top: 15px; display: none; gap: 10px; justify-content: center; flex-wrap: wrap; }
+        .inter-btn { background: #fff; border: 1px solid var(--water); color: var(--water); padding: 8px 12px; border-radius: 10px; font-size: 0.8rem; cursor: pointer; }
+        .inter-btn:disabled { opacity: 0.5; color: #ccc; border-color: #ddd; }
+
+        .end-break-btn { 
+            background: none; border: 1px solid #ddd; color: #bbb; padding: 5px 15px; 
+            border-radius: 10px; font-size: 11px; margin-top: 15px; cursor: pointer; display: none;
+        }
+
+        .total-counter { margin-top: 25px; padding: 12px; background: #fffcf8; border-radius: 15px; border: 1px solid var(--primary-light); display: inline-block; min-width: 140px; }
+        .total-num { font-size: 22px; font-weight: bold; color: var(--primary); }
+
+        /* 右側：任務成就清單 */
+        .list-card { padding: 25px; width: 280px; max-height: 650px; overflow-y: auto; }
+        .list-header { display: flex; justify-content: space-between; align-items: center; border-bottom: 2px solid var(--primary-light); padding-bottom: 5px; margin-bottom: 15px; }
+        .done-item { display: flex; align-items: flex-start; gap: 10px; margin-bottom: 12px; font-size: 0.85rem; border-bottom: 1px solid #f9f9f9; padding-bottom: 8px; }
+        .timestamp { font-size: 10px; color: #bbb; min-width: 45px; margin-top: 3px; }
+        .milestone-tag { color: #f39c12; font-weight: bold; } 
+        .clear-btn { background: none; border: none; color: #ccc; cursor: pointer; font-size: 11px; transition: 0.2s; }
+        .clear-btn:hover { color: var(--primary); }
+
+        #celebration {
+            position: fixed; top: 20px; left: 50%; transform: translateX(-50%);
+            background: var(--water); color: white; padding: 15px 30px;
+            border-radius: 50px; z-index: 100; display: none; animation: fadeInDown 0.5s;
+        }
+        @keyframes fadeInDown { from {opacity:0; transform:translate(-50%, -20px);} to {opacity:1; transform:translate(-50%, 0);} }
+    </style>
+</head>
+<body>
+
+    <div id="celebration">✨ 里程碑達成！身體充滿能量 ✨</div>
+
+    <div class="main-layout">
+        <div class="water-card">
+            <h3 style="font-size: 1rem; margin: 0;">每日補水</h3>
+            <div class="cup-container"><div class="water-fill" id="waterLevel"></div></div>
+            <div style="font-size: 1.1rem; font-weight: bold;"><span id="waterValue">0</span> / 2000</div>
+            <button onclick="addWater(100)" style="background: var(--water); border:none; color:white; padding:8px 15px; border-radius:10px; cursor:pointer; margin-top:10px;">+100ml</button>
+            
+            <div class="water-history-area">
+                <div style="font-size: 0.8rem; color: var(--water); font-weight: bold; margin-bottom: 10px;">補水紀錄 💧</div>
+                <div id="waterList"></div>
+            </div>
+        </div>
+
+        <div class="timer-card">
+            <input type="text" id="taskInput" placeholder="想完成什麼任務？">
+            <div class="btn-group">
+                <button id="pomoBtn" class="active" onclick="setMode('pomo')">專注</button>
+                <button id="shortBtn" onclick="setMode('short')">短休</button>
+                <button id="longBtn" onclick="setMode('long')">長休</button>
+            </div>
+
+            <div class="tomato-loader">
+                <div class="tomato-fill" id="tomatoFill"></div>
+                <span id="tomatoEmoji">🍅</span>
+            </div>
+
+            <div id="timer">25:00</div>
+            
+            <button class="main-btn" id="startBtn" onclick="toggleTimer()">開始專注</button>
+
+            <div class="interaction-group" id="interactionGroup">
+                <button class="inter-btn" id="standBtn" onclick="logAction('站起來了！', 'action')">我站起來了！🚶</button>
+                <button class="inter-btn" id="backBtn" onclick="logAction('走路回來了！', 'action')" disabled>我走路回來了！🔙</button>
+            </div>
+
+            <button onclick="completeCycle(true)" id="earlyBtn" style="background:none; border:none; color:var(--primary); margin-top:10px; cursor:pointer; font-size:12px; display:none;">提早完成任務 💪</button>
+            
+            <button onclick="completeCycle(false)" id="endBreakBtn" class="end-break-btn">我休息夠了，開始工作！✍️</button>
+
+            <div style="margin-top: 10px;">
+                <div class="total-counter">
+                    <span style="font-size: 12px; color: #999;">今日番茄總數</span><br>
+                    <span id="totalPomoNum" class="total-num">0</span>
+                </div>
+            </div>
+            <button onclick="resetTimer()" style="background:none; border:none; color:#ccc; margin-top:15px; cursor:pointer; font-size:11px;">重置計時</button>
+        </div>
+
+        <div class="list-card">
+            <div id="currentDateLabel" style="font-size: 12px; color: var(--primary); margin-bottom: 15px; font-weight: bold;">Today</div>
+            <div class="list-header">
+                <h3 style="font-size: 1rem; margin: 0;">成就清單 🍅</h3>
+                <button class="clear-btn" onclick="clearAllData()">清除紀錄 🗑️</button>
+            </div>
+            <div id="doneList"></div>
+        </div>
+    </div>
+
+    <script>
+        let timeLeft = 25 * 60;
+        let totalTime = 25 * 60;
+        let timerId = null;
+        let currentMode = 'pomo';
+        const getTodayKey = () => new Date().toISOString().split('T')[0];
+        let todayKey = getTodayKey();
+
+        let dailyData = JSON.parse(localStorage.getItem(todayKey)) || { water: 0, history: [], totalPomo: 0 };
+
+        window.onload = () => {
+            document.getElementById('currentDateLabel').textContent = `📅 ${todayKey}`;
+            updateWaterDisplay();
+            renderHistory();
+            updateTotalDisplay();
+            if (Notification.permission !== "granted") Notification.requestPermission();
+        };
+
+        function saveData() { localStorage.setItem(todayKey, JSON.stringify(dailyData)); }
+
+        function setMode(mode, autoStart = false) {
+            currentMode = mode;
+            clearInterval(timerId);
+            timerId = null;
+            document.getElementById('earlyBtn').style.display = "none";
+            document.getElementById('endBreakBtn').style.display = (mode === 'pomo') ? "none" : "inline-block";
+            document.getElementById('interactionGroup').style.display = (mode === 'pomo') ? "none" : "flex";
+            document.getElementById('startBtn').textContent = mode === 'pomo' ? "開始專注" : "開始休息";
+            document.querySelectorAll('.btn-group button').forEach(b => b.classList.remove('active'));
+            
+            if (mode === 'pomo') {
+                timeLeft = 25 * 60;
+                document.getElementById('pomoBtn').classList.add('active');
+                document.getElementById('tomatoEmoji').textContent = "🍅";
+            } else {
+                timeLeft = mode === 'short' ? 5 * 60 : 15 * 60;
+                document.getElementById(mode + 'Btn').classList.add('active');
+                document.getElementById('tomatoEmoji').textContent = "🍃";
+                document.getElementById('standBtn').disabled = false;
+                document.getElementById('backBtn').disabled = true;
+            }
+            totalTime = timeLeft;
+            updateDisplay();
+            if (autoStart) toggleTimer();
+        }
+
+        function updateDisplay() {
+            const mins = Math.floor(timeLeft / 60);
+            const secs = timeLeft % 60;
+            document.getElementById('timer').textContent = `${mins}:${secs < 10 ? '0' : ''}${secs}`;
+            document.getElementById('tomatoFill').style.height = ((totalTime - timeLeft) / totalTime) * 100 + '%';
+        }
+
+        function toggleTimer() {
+            if (timerId) {
+                clearInterval(timerId);
+                timerId = null;
+                document.getElementById('startBtn').textContent = "繼續";
+            } else {
+                if (currentMode === 'pomo' && !document.getElementById('taskInput').value) {
+                    alert("請輸入任務名稱！"); return;
+                }
+                document.getElementById('startBtn').textContent = "暫停";
+                if (currentMode === 'pomo') document.getElementById('earlyBtn').style.display = "inline-block";
+                timerId = setInterval(() => {
+                    timeLeft--;
+                    updateDisplay();
+                    if (timeLeft <= 0) {
+                        clearInterval(timerId);
+                        timerId = null;
+                        completeCycle(false);
+                    }
+                }, 1000);
+            }
+        }
+
+        function completeCycle(isEarly) {
+            const task = document.getElementById('taskInput').value || "未命名任務";
+            if (currentMode === 'pomo') {
+                logAction(task, 'pomo', isEarly);
+                dailyData.totalPomo++;
+                saveData();
+                updateTotalDisplay();
+                showNotification(isEarly ? "提早達標！" : "時間到！", `任務：${task} 已完成。`);
+                setMode('short', true); 
+            } else {
+                logAction(isEarly ? '提早結束休息' : '休息結束', 'action');
+                setMode('pomo');
+            }
+        }
+
+        function logAction(task, type, early = false) {
+            const timestamp = new Date().toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'});
+            dailyData.history.push({ task, time: timestamp, type, early });
+            saveData();
+            renderHistory();
+            if (task === '站起來了！') {
+                document.getElementById('standBtn').disabled = true;
+                document.getElementById('backBtn').disabled = false;
+            }
+        }
+
+        function addWater(ml) {
+            const oldWater = dailyData.water;
+            dailyData.water = Math.min(dailyData.water + ml, 2000);
+            
+            const timestamp = new Date().toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'});
+            dailyData.history.push({ task: `補水 ${ml}ml`, time: timestamp, type: 'water' });
+
+            const milestones = [500, 1000, 1500, 2000];
+            milestones.forEach(m => {
+                if (oldWater < m && dailyData.water >= m) {
+                    dailyData.history.push({ task: `🏆 達成 ${m}ml！`, time: timestamp, type: 'milestone' });
+                    showCelebration(`達成 ${m}ml 里程碑！`);
+                }
+            });
+
+            saveData();
+            updateWaterDisplay();
+            renderHistory();
+        }
+
+        function renderHistory() {
+            const pomoList = document.getElementById('doneList');
+            const waterList = document.getElementById('waterList');
+            
+            pomoList.innerHTML = "";
+            waterList.innerHTML = "";
+
+            let hasPomo = false;
+            let hasWater = false;
+
+            // 倒序顯示，最新的在上面
+            dailyData.history.slice().reverse().forEach(item => {
+                const div = document.createElement('div');
+                div.className = 'done-item';
+                
+                let icon = '🍅';
+                let contentClass = '';
+                
+                if (item.type === 'water') {
+                    icon = '💧';
+                    div.innerHTML = `<span class="timestamp">${item.time}</span><span>${icon}</span><span>${item.task}</span>`;
+                    waterList.appendChild(div);
+                    hasWater = true;
+                } else {
+                    if (item.type === 'action') icon = '✨';
+                    if (item.type === 'milestone') { icon = '👑'; contentClass = 'milestone-tag'; }
+                    
+                    div.innerHTML = `
+                        <span class="timestamp">${item.time}</span>
+                        <span>${icon}</span>
+                        <span class="${contentClass}">${item.task}${item.early?'⚡':''}</span>
+                    `;
+                    pomoList.appendChild(div);
+                    hasPomo = true;
+                }
+            });
+
+            if (!hasPomo) pomoList.innerHTML = '<p style="color:#ccc; font-size:0.8rem;">尚未完成任務</p>';
+            if (!hasWater) waterList.innerHTML = '<p style="color:#ccc; font-size:0.8rem;">尚未補水</p>';
+        }
+
+        function updateWaterDisplay() {
+            document.getElementById('waterValue').textContent = dailyData.water;
+            document.getElementById('waterLevel').style.height = (dailyData.water / 2000) * 100 + '%';
+        }
+
+        function updateTotalDisplay() { document.getElementById('totalPomoNum').textContent = dailyData.totalPomo; }
+
+        function showCelebration(text) {
+            const msg = document.getElementById('celebration');
+            msg.textContent = `✨ ${text} ✨`;
+            msg.style.display = "block";
+            setTimeout(() => { msg.style.display = "none"; }, 3500);
+        }
+
+        function resetTimer() { clearInterval(timerId); timerId = null; setMode(currentMode); }
+
+        function clearAllData() {
+            if (confirm("確定要清除今天的番茄鐘與補水紀錄嗎？")) {
+                dailyData = { water: 0, history: [], totalPomo: 0 };
+                saveData();
+                updateWaterDisplay();
+                updateTotalDisplay();
+                renderHistory();
+                resetTimer();
+                showCelebration("紀錄已清空！");
+            }
+        }
+
+        function showNotification(title, body) {
+            if (Notification.permission === "granted") new Notification(title, { body });
+        }
+    </script>
+</body>
+</html>
