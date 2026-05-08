@@ -1,10 +1,8 @@
 <!DOCTYPE html>
 <html lang="zh-TW">
 <head>
-     <link rel="icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text y=%22.9em%22 font-size=%2290%22>🍅</text></svg>">
     <meta charset="UTF-8">
-    <title> Cozy Station</title>
-
+    <title>Yuqi's Cozy Station</title>
     <style>
         :root {
             --bg: #fdfaf5;
@@ -14,25 +12,22 @@
             --break: #b5e5c0;
             --break-dark: #6dbf80;
             --text: #5d5d5d;
+            --task: #f0a0b0;
+            --task-light: #fde8ed;
+            --task-dark: #c0607a;
         }
-
         body {
-            display: flex; justify-content: center; align-items: center;
+            display: flex; justify-content: center; align-items: flex-start;
             min-height: 100vh; margin: 0; background-color: var(--bg);
             font-family: "PingFang TC", "Microsoft JhengHei", sans-serif;
-            color: var(--text);
+            color: var(--text); padding: 20px 0;
         }
-
-        .main-layout { display: flex; gap: 24px; align-items: flex-start; max-width: 1300px; padding: 20px; }
-
-        .water-card, .timer-card, .list-card, .break-card {
+        .main-layout { display: flex; gap: 24px; align-items: flex-start; max-width: 1500px; padding: 20px; }
+        .water-card, .timer-card, .list-card, .task-panel {
             background: white; border-radius: 30px; box-shadow: 0 10px 30px rgba(0,0,0,0.04);
         }
-
-        /* ── 左欄容器 ── */
         .left-col { display: flex; flex-direction: column; gap: 12px; }
 
-        /* ── 重置按鈕（獨立卡片） ── */
         .reset-card {
             background: white; border-radius: 20px; box-shadow: 0 10px 30px rgba(0,0,0,0.04);
             padding: 12px 18px; display: flex; align-items: center; gap: 10px;
@@ -42,80 +37,75 @@
             transition: color 0.2s, box-shadow 0.2s;
         }
         .reset-card:hover { color: var(--primary); box-shadow: 0 10px 30px rgba(226,142,142,0.15); }
-        .reset-icon { font-size: 1.1rem; }
 
-        /* ── 左側：水杯 ── */
-        .water-card { padding: 25px; width: 200px; text-align: center; display: flex; flex-direction: column; max-height: 680px; }
+        /* 水杯 */
+        .water-card { padding: 25px; width: 200px; text-align: center; display: flex; flex-direction: column; max-height: 780px; }
         .cup-container {
             width: 80px; height: 180px; border: 4px solid #f0f0f0;
             border-bottom-left-radius: 20px; border-bottom-right-radius: 20px;
             margin: 15px auto; position: relative; overflow: hidden; flex-shrink: 0;
         }
-        .water-fill {
-            position: absolute; bottom: 0; width: 100%;
-            background: var(--water); transition: height 0.5s ease-out; height: 0%;
-        }
-        .water-history-area {
-            margin-top: 16px; border-top: 1px dashed var(--water); padding-top: 12px;
-            overflow-y: auto; text-align: left; flex: 1;
-        }
+        .water-fill { position: absolute; bottom: 0; width: 100%; background: var(--water); transition: height 0.5s ease-out; height: 0%; }
+        .water-history-area { margin-top: 16px; border-top: 1px dashed var(--water); padding-top: 12px; overflow-y: auto; text-align: left; flex: 1; }
 
-        /* ── 中間：番茄鐘 ── */
+        /* 番茄鐘 */
         .timer-card { padding: 36px 40px; width: 370px; text-align: center; box-shadow: 0 15px 50px rgba(0,0,0,0.06); }
         .btn-group { margin-bottom: 28px; }
-
         .tomato-loader {
             width: 130px; height: 130px; margin: 0 auto 25px;
             position: relative; border: 4px dashed var(--primary-light);
             border-radius: 50%; display: flex; align-items: center; justify-content: center;
             font-size: 55px; overflow: hidden;
         }
-        .tomato-fill {
-            position: absolute; bottom: 0; width: 100%;
-            background: var(--primary); opacity: 0.3; height: 0%; transition: height 1s linear;
-        }
-
+        .tomato-fill { position: absolute; bottom: 0; width: 100%; background: var(--primary); opacity: 0.3; height: 0%; transition: height 1s linear; }
         #timer { font-size: 4.5rem; font-weight: 300; margin: 10px 0; color: var(--primary); }
         input {
             width: 85%; padding: 12px; border: 1px solid #f0f0f0; border-radius: 15px;
             margin-bottom: 18px; outline: none; background: #fafafa; text-align: center;
+            font-family: "PingFang TC", "Microsoft JhengHei", sans-serif;
         }
-
         .btn-group button {
             padding: 9px 16px; border: none; border-radius: 12px; cursor: pointer; margin: 0 4px;
             background: #f0f0f0; transition: 0.2s; font-size: 0.9rem;
+            font-family: "PingFang TC", "Microsoft JhengHei", sans-serif;
         }
         button.active { background: var(--primary); color: white; }
         .main-btn {
             width: 90%; padding: 15px; background: var(--primary); color: white;
             border: none; border-radius: 20px; font-size: 1.1rem; margin-top: 12px; cursor: pointer;
-            transition: opacity 0.2s;
+            transition: opacity 0.2s; font-family: "PingFang TC", "Microsoft JhengHei", sans-serif;
         }
         .main-btn:hover { opacity: 0.85; }
-
-        /* 互動按鈕 */
+        .current-task-banner {
+            background: var(--task-light); border-radius: 14px; padding: 10px 16px;
+            margin-bottom: 14px; font-size: 0.85rem; color: var(--task-dark);
+            display: none; align-items: center; gap: 8px; text-align: left;
+        }
+        .current-task-banner .task-name { font-weight: bold; flex: 1; }
+        .current-task-banner .task-est { font-size: 0.75rem; color: #bbb; }
+        .oot-badge {
+            display: inline-block; background: #fff3cd; color: #b7791f;
+            border-radius: 8px; padding: 2px 8px; font-size: 0.72rem; font-weight: bold; margin-left: 6px;
+        }
         .interaction-group { margin-top: 14px; display: none; gap: 10px; justify-content: center; flex-wrap: wrap; }
-        .inter-btn { background: #fff; border: 1px solid var(--break-dark); color: var(--break-dark); padding: 8px 12px; border-radius: 10px; font-size: 0.8rem; cursor: pointer; transition: 0.2s; }
+        .inter-btn {
+            background: #fff; border: 1px solid var(--break-dark); color: var(--break-dark);
+            padding: 8px 12px; border-radius: 10px; font-size: 0.8rem; cursor: pointer; transition: 0.2s;
+            font-family: "PingFang TC", "Microsoft JhengHei", sans-serif;
+        }
         .inter-btn:hover:not(:disabled) { background: var(--break); }
         .inter-btn:disabled { opacity: 0.4; color: #ccc; border-color: #ddd; }
-
         .end-break-btn {
             background: none; border: 1px solid #ddd; color: #bbb; padding: 5px 15px;
             border-radius: 10px; font-size: 11px; margin-top: 12px; cursor: pointer; display: none;
-            transition: 0.2s;
+            transition: 0.2s; font-family: "PingFang TC", "Microsoft JhengHei", sans-serif;
         }
         .end-break-btn:hover { border-color: var(--primary); color: var(--primary); }
 
-        /* ── 右側：成就清單 + 休息紀錄 ── */
+        /* 右欄 */
         .right-col { display: flex; flex-direction: column; gap: 16px; width: 280px; }
-
-        .list-card { padding: 22px; max-height: 380px; overflow-y: auto; }
-        .break-card { padding: 22px; max-height: 280px; overflow-y: auto; }
-
+        .list-card { padding: 22px; max-height: 340px; overflow-y: auto; }
         .list-header { display: flex; justify-content: space-between; align-items: center; border-bottom: 2px solid var(--primary-light); padding-bottom: 6px; margin-bottom: 12px; }
-        .break-header { display: flex; justify-content: space-between; align-items: center; border-bottom: 2px solid var(--break); padding-bottom: 6px; margin-bottom: 12px; }
-
-        /* 番茄總計 — 在成就清單內 */
         .pomo-summary {
             display: flex; align-items: center; justify-content: space-between;
             background: #fffcf8; border: 1px solid var(--primary-light);
@@ -123,14 +113,60 @@
         }
         .pomo-summary .label { font-size: 11px; color: #bbb; }
         .pomo-summary .num { font-size: 22px; font-weight: bold; color: var(--primary); }
-
         .done-item { display: flex; align-items: flex-start; gap: 8px; margin-bottom: 10px; font-size: 0.82rem; border-bottom: 1px solid #f5f5f5; padding-bottom: 7px; }
         .timestamp { font-size: 10px; color: #bbb; min-width: 42px; margin-top: 2px; flex-shrink: 0; }
         .milestone-tag { color: #f39c12; font-weight: bold; }
         .clear-btn { background: none; border: none; color: #ccc; cursor: pointer; font-size: 11px; transition: 0.2s; }
         .clear-btn:hover { color: var(--primary); }
 
-        /* ── 慶祝橫幅 ── */
+        /* 任務面板（淺粉色） */
+        .task-panel { padding: 22px; display: flex; flex-direction: column; max-height: 420px; }
+        .task-panel-header {
+            display: flex; justify-content: space-between; align-items: center;
+            border-bottom: 2px solid var(--task-light); padding-bottom: 8px; margin-bottom: 14px;
+        }
+        .task-panel-header h3 { font-size: 0.95rem; margin: 0; color: var(--task-dark); }
+        .task-add-area { display: flex; flex-direction: column; gap: 8px; margin-bottom: 14px; }
+        .task-add-area input {
+            width: 100%; box-sizing: border-box; margin: 0;
+            border: 1px solid var(--task-light); border-radius: 12px;
+            padding: 9px 12px; font-size: 0.85rem; background: #fff8f9;
+        }
+        .task-add-area input:focus { border-color: var(--task); outline: none; }
+        .task-est-row { display: flex; align-items: center; gap: 8px; }
+        .task-est-row label { font-size: 0.78rem; color: #aaa; white-space: nowrap; }
+        .est-btns { display: flex; gap: 4px; }
+        .est-btn {
+            width: 28px; height: 28px; border: 1px solid var(--task-light);
+            border-radius: 8px; background: white; cursor: pointer; font-size: 0.8rem;
+            transition: 0.2s; display: flex; align-items: center; justify-content: center;
+            font-family: "PingFang TC", "Microsoft JhengHei", sans-serif;
+        }
+        .est-btn.sel { background: var(--task); border-color: var(--task); color: white; }
+        .est-btn:hover:not(.sel) { background: var(--task-light); }
+        .add-task-btn {
+            background: var(--task); color: white; border: none; border-radius: 12px;
+            padding: 8px 0; font-size: 0.85rem; cursor: pointer; transition: opacity 0.2s;
+            font-family: "PingFang TC", "Microsoft JhengHei", sans-serif;
+        }
+        .add-task-btn:hover { opacity: 0.85; }
+        .task-list { overflow-y: auto; flex: 1; }
+        .task-item {
+            display: flex; align-items: center; gap: 8px;
+            padding: 9px 12px; border-radius: 14px; margin-bottom: 8px;
+            border: 1.5px solid var(--task-light); cursor: pointer; transition: 0.2s;
+        }
+        .task-item:hover { background: var(--task-light); border-color: var(--task); }
+        .task-item.active-task { background: var(--task-light); border-color: var(--task); box-shadow: 0 0 0 2px rgba(240,160,176,0.3); }
+        .task-item.done-task { opacity: 0.4; text-decoration: line-through; cursor: default; pointer-events: none; }
+        .task-item-name { flex: 1; font-size: 0.82rem; }
+        .task-item-est { font-size: 0.72rem; color: #bbb; white-space: nowrap; }
+        .task-item-actual { font-size: 0.72rem; color: var(--primary); font-weight: bold; white-space: nowrap; }
+        .task-del-btn { background: none; border: none; color: #ddd; cursor: pointer; font-size: 0.75rem; padding: 0 2px; transition: 0.2s; }
+        .task-del-btn:hover { color: var(--primary); }
+        .task-select-hint { font-size: 0.72rem; color: var(--task); text-align: center; margin-bottom: 10px; animation: pulse 2s infinite; }
+        @keyframes pulse { 0%,100%{opacity:1}50%{opacity:0.5} }
+
         #celebration {
             position: fixed; top: 22px; left: 50%; transform: translateX(-50%);
             background: var(--water); color: white; padding: 14px 30px;
@@ -138,80 +174,73 @@
             font-size: 0.95rem; white-space: nowrap;
         }
         @keyframes fadeInDown {
-            from { opacity: 0; transform: translate(-50%, -20px); }
-            to   { opacity: 1; transform: translate(-50%, 0); }
+            from{opacity:0;transform:translate(-50%,-20px)}
+            to{opacity:1;transform:translate(-50%,0)}
         }
     </style>
 </head>
 <body>
-
 <div id="celebration">✨ 里程碑達成！身體充滿能量 ✨</div>
 
 <div class="main-layout">
 
-    <!-- 左：重置 + 補水 -->
+    <!-- 左：重置 + 補水（含休息紀錄） -->
     <div class="left-col">
-    <button class="reset-card" onclick="resetTimer()">
-        <span class="reset-icon">↺</span>
-        <span>重置計時器</span>
-    </button>
-    <div class="water-card">
-        <h3 style="font-size: 1rem; margin: 0;">每日補水</h3>
-        <div class="cup-container"><div class="water-fill" id="waterLevel"></div></div>
-        <div style="font-size: 1.1rem; font-weight: bold;"><span id="waterValue">0</span> / 2000 ml</div>
-        <button onclick="addWater(100)" style="background: var(--water); border:none; color:white; padding:8px 15px; border-radius:10px; cursor:pointer; margin-top:10px;">+100ml</button>
-
-        <div class="water-history-area">
-            <div style="font-size: 0.8rem; color: var(--water); font-weight: bold; margin-bottom: 10px;">補水紀錄 💧</div>
-            <div id="waterList"></div>
+        <button class="reset-card" onclick="resetTimer()">
+            <span style="font-size:1.1rem">↺</span><span>重置計時器</span>
+        </button>
+        <div class="water-card">
+            <h3 style="font-size:1rem;margin:0;">每日補水</h3>
+            <div class="cup-container"><div class="water-fill" id="waterLevel"></div></div>
+            <div style="font-size:1.1rem;font-weight:bold;"><span id="waterValue">0</span> / 2000 ml</div>
+            <button onclick="addWater(100)" style="background:var(--water);border:none;color:white;padding:8px 15px;border-radius:10px;cursor:pointer;margin-top:10px;font-family:inherit;">+100ml</button>
+            <div class="water-history-area">
+                <div style="font-size:0.8rem;color:var(--water);font-weight:bold;margin-bottom:10px;">補水紀錄 💧</div>
+                <div id="waterList"></div>
+                <div style="margin-top:16px;border-top:1px dashed var(--break);padding-top:12px;">
+                    <div style="font-size:0.8rem;color:var(--break-dark);font-weight:bold;margin-bottom:8px;">休息紀錄 🌿</div>
+                    <div id="breakList"></div>
+                </div>
+            </div>
         </div>
     </div>
 
-    </div><!-- /left-col -->
-
     <!-- 中：番茄鐘 -->
     <div class="timer-card">
+        <div class="current-task-banner" id="currentTaskBanner">
+            <span>🍅</span>
+            <span class="task-name" id="currentTaskName"></span>
+            <span class="task-est" id="currentTaskEst"></span>
+        </div>
         <input type="text" id="taskInput" placeholder="想完成什麼任務？">
         <div class="btn-group">
             <button id="pomoBtn" class="active" onclick="setMode('pomo')">專注</button>
             <button id="shortBtn" onclick="setMode('short')">短休</button>
             <button id="longBtn" onclick="setMode('long')">長休</button>
         </div>
-
         <div class="tomato-loader">
             <div class="tomato-fill" id="tomatoFill"></div>
             <span id="tomatoEmoji">🍅</span>
         </div>
-
         <div id="timer">25:00</div>
-
         <button class="main-btn" id="startBtn" onclick="toggleTimer()">開始專注</button>
-
         <div class="interaction-group" id="interactionGroup">
-            <button class="inter-btn" id="standBtn" onclick="logAction('站起來了！', 'break')">我站起來了！🚶</button>
-            <button class="inter-btn" id="backBtn" onclick="logAction('走路回來了！', 'break')" disabled>我走路回來了！🔙</button>
+            <button class="inter-btn" id="standBtn" onclick="logAction('站起來了！','break')">我站起來了！🚶</button>
+            <button class="inter-btn" id="backBtn" onclick="logAction('走路回來了！','break')" disabled>我走路回來了！🔙</button>
         </div>
-
         <button onclick="completeCycle(true)" id="earlyBtn"
-            style="background:none; border:none; color:var(--primary); margin-top:10px; cursor:pointer; font-size:12px; display:none;">
+            style="background:none;border:none;color:var(--primary);margin-top:10px;cursor:pointer;font-size:12px;display:none;font-family:inherit;">
             提早完成任務 💪
         </button>
-
         <button onclick="completeCycle(false)" id="endBreakBtn" class="end-break-btn">
             我休息夠了，開始工作！✍️
         </button>
-
-
     </div>
 
-    <!-- 右：成就清單 + 休息紀錄 -->
+    <!-- 右：成就清單 + 任務面板 -->
     <div class="right-col">
-
-        <!-- 成就清單（番茄完成） -->
         <div class="list-card">
-            <div id="currentDateLabel" style="font-size: 11px; color: var(--primary); margin-bottom: 10px; font-weight: bold;">Today</div>
-
-            <!-- 番茄總計移到此處 -->
+            <div id="currentDateLabel" style="font-size:11px;color:var(--primary);margin-bottom:10px;font-weight:bold;">Today</div>
             <div class="pomo-summary">
                 <div>
                     <div class="label">今日番茄</div>
@@ -219,301 +248,314 @@
                 </div>
                 <button class="clear-btn" onclick="clearAllData()" title="清除所有紀錄">🗑️</button>
             </div>
-
             <div class="list-header">
-                <h3 style="font-size: 0.95rem; margin: 0;">成就清單 🏆</h3>
+                <h3 style="font-size:0.95rem;margin:0;">成就清單 🏆</h3>
             </div>
             <div id="doneList"></div>
         </div>
 
-        <!-- 休息紀錄 -->
-        <div class="break-card">
-            <div class="break-header">
-                <h3 style="font-size: 0.95rem; margin: 0; color: var(--break-dark);">休息紀錄 🌿</h3>
+        <!-- 任務面板（淺粉色，成就清單下方） -->
+        <div class="task-panel">
+            <div class="task-panel-header">
+                <h3>🍅 Tomato Tasks</h3>
+                <span style="font-size:0.72rem;color:#ccc;">點選任務開始計時</span>
             </div>
-            <div id="breakList"></div>
+            <div class="task-add-area">
+                <input type="text" id="newTaskInput" placeholder="新增任務..." onkeydown="if(event.key==='Enter')addTask()">
+                <div class="task-est-row">
+                    <label>預計番茄：</label>
+                    <div class="est-btns" id="estBtns">
+                        <button class="est-btn sel" data-v="1">1</button>
+                        <button class="est-btn" data-v="2">2</button>
+                        <button class="est-btn" data-v="3">3</button>
+                        <button class="est-btn" data-v="4">4</button>
+                    </div>
+                </div>
+                <button class="add-task-btn" onclick="addTask()">＋ 新增任務</button>
+            </div>
+            <div class="task-select-hint" id="taskSelectHint" style="display:none;">👆 點選任務以開始專注</div>
+            <div class="task-list" id="taskList"></div>
         </div>
-
     </div>
 </div>
 
 <script>
-    /* ── 狀態 ── */
-    let timeLeft = 25 * 60, totalTime = 25 * 60;
+    let timeLeft = 25*60, totalTime = 25*60;
     let timerId = null, currentMode = 'pomo';
+    let timerRunning = false;
+    let timerStartedAt = null, timeLeftAtStart = 25*60;
+
     const getTodayKey = () => new Date().toISOString().split('T')[0];
     let todayKey = getTodayKey();
-    let dailyData = JSON.parse(localStorage.getItem(todayKey)) || { water: 0, history: [], totalPomo: 0 };
+    let dailyData = JSON.parse(localStorage.getItem(todayKey)) || { water:0, history:[], totalPomo:0 };
+    let tasks = JSON.parse(localStorage.getItem('yuqi_tasks_'+todayKey)) || [];
+    let activeTaskId = null, selectedEst = 1;
 
-    /* ── Web Audio 音效 ── */
-    const AudioCtx = window.AudioContext || window.webkitAudioContext;
-    let audioCtx = null;
-    function getAudioCtx() {
-        if (!audioCtx) audioCtx = new AudioCtx();
-        return audioCtx;
+    /* 離開頁面補算時間 */
+    document.addEventListener('visibilitychange', () => {
+        if (!timerRunning) return;
+        if (document.hidden) {
+            clearInterval(timerId); timerId = null;
+            timerStartedAt = Date.now(); timeLeftAtStart = timeLeft;
+        } else {
+            if (timerStartedAt !== null) {
+                const elapsed = Math.floor((Date.now() - timerStartedAt) / 1000);
+                timeLeft = Math.max(0, timeLeftAtStart - elapsed);
+                timerStartedAt = null;
+                updateDisplay();
+                if (timeLeft <= 0) { timerRunning = false; completeCycle(false); return; }
+                timerId = setInterval(tick, 1000);
+            }
+        }
+    });
+
+    /* Tab 標題 */
+    function updateTabTitle() {
+        if (timerRunning) {
+            const m = String(Math.floor(timeLeft/60)).padStart(2,'0');
+            const s = String(timeLeft%60).padStart(2,'0');
+            document.title = `${currentMode==='pomo'?'🍅':'🍃'} ${m}:${s} — Yuqi's Cozy Station`;
+        } else {
+            document.title = "Yuqi's Cozy Station";
+        }
     }
 
-    // 通用音效產生器
-    function playTone(notes, type = 'sine') {
-        // notes = [ { freq, start, duration, gain } ]
-        const ctx = getAudioCtx();
-        notes.forEach(({ freq, start, duration, gain = 0.4 }) => {
-            const osc = ctx.createOscillator();
-            const gainNode = ctx.createGain();
-            osc.connect(gainNode);
-            gainNode.connect(ctx.destination);
-            osc.type = type;
-            osc.frequency.value = freq;
-            gainNode.gain.setValueAtTime(gain, ctx.currentTime + start);
-            gainNode.gain.exponentialRampToValueAtTime(0.001, ctx.currentTime + start + duration);
-            osc.start(ctx.currentTime + start);
-            osc.stop(ctx.currentTime + start + duration + 0.05);
+    /* Audio */
+    let audioCtx = null;
+    function getAC() { if(!audioCtx) audioCtx = new (window.AudioContext||window.webkitAudioContext)(); return audioCtx; }
+    function playTone(notes) {
+        const ctx = getAC();
+        notes.forEach(({freq,start,duration,gain=0.4}) => {
+            const o=ctx.createOscillator(), g=ctx.createGain();
+            o.connect(g); g.connect(ctx.destination);
+            o.frequency.value=freq;
+            g.gain.setValueAtTime(gain, ctx.currentTime+start);
+            g.gain.exponentialRampToValueAtTime(0.001, ctx.currentTime+start+duration);
+            o.start(ctx.currentTime+start); o.stop(ctx.currentTime+start+duration+0.05);
         });
     }
+    function soundDone()     { playTone([{freq:523,start:0,duration:.18},{freq:659,start:.2,duration:.18},{freq:784,start:.4,duration:.35}]); }
+    function soundBreakEnd() { playTone([{freq:392,start:0,duration:.15,gain:.3},{freq:523,start:.18,duration:.15,gain:.3},{freq:659,start:.36,duration:.3,gain:.35}]); }
 
-    // 完成任務音（明亮上揚三音）
-    function soundDone() {
-        playTone([
-            { freq: 523, start: 0,    duration: 0.18 },
-            { freq: 659, start: 0.2,  duration: 0.18 },
-            { freq: 784, start: 0.4,  duration: 0.35 },
-        ]);
-    }
-
-    // 短休音（柔和兩音）
-    function soundShortBreak() {
-        playTone([
-            { freq: 440, start: 0,   duration: 0.2, gain: 0.3 },
-            { freq: 523, start: 0.25, duration: 0.3, gain: 0.3 },
-        ]);
-    }
-
-    // 長休音（舒展下行三音）
-    function soundLongBreak() {
-        playTone([
-            { freq: 659, start: 0,   duration: 0.22, gain: 0.3 },
-            { freq: 523, start: 0.25, duration: 0.22, gain: 0.3 },
-            { freq: 392, start: 0.5,  duration: 0.4,  gain: 0.3 },
-        ]);
-    }
-
-    // 休息結束音（提醒回去工作）
-    function soundBreakEnd() {
-        playTone([
-            { freq: 392, start: 0,   duration: 0.15, gain: 0.3 },
-            { freq: 523, start: 0.18, duration: 0.15, gain: 0.3 },
-            { freq: 659, start: 0.36, duration: 0.3,  gain: 0.35 },
-        ]);
-    }
-
-    /* ── 初始化 ── */
     window.onload = () => {
         document.getElementById('currentDateLabel').textContent = `📅 ${todayKey}`;
-        updateWaterDisplay();
-        renderHistory();
-        updateTotalDisplay();
+        updateWaterDisplay(); renderHistory(); updateTotalDisplay(); renderTasks();
         if (Notification.permission !== 'granted') Notification.requestPermission();
     };
 
-    function saveData() { localStorage.setItem(todayKey, JSON.stringify(dailyData)); }
+    function saveData()  { localStorage.setItem(todayKey, JSON.stringify(dailyData)); }
+    function saveTasks() { localStorage.setItem('yuqi_tasks_'+todayKey, JSON.stringify(tasks)); }
 
-    /* ── 模式切換 ── */
-    function setMode(mode, autoStart = false) {
-        currentMode = mode;
-        clearInterval(timerId); timerId = null;
-        document.getElementById('earlyBtn').style.display = 'none';
-        document.getElementById('endBreakBtn').style.display = mode === 'pomo' ? 'none' : 'inline-block';
-        document.getElementById('interactionGroup').style.display = mode === 'pomo' ? 'none' : 'flex';
-        document.getElementById('startBtn').textContent = mode === 'pomo' ? '開始專注' : '開始休息';
-        document.querySelectorAll('.btn-group button').forEach(b => b.classList.remove('active'));
+    document.getElementById('estBtns').addEventListener('click', e => {
+        const btn = e.target.closest('.est-btn'); if(!btn) return;
+        selectedEst = parseInt(btn.dataset.v);
+        document.querySelectorAll('.est-btn').forEach(b=>b.classList.remove('sel'));
+        btn.classList.add('sel');
+    });
 
-        if (mode === 'pomo') {
-            timeLeft = 25 * 60;
-            document.getElementById('pomoBtn').classList.add('active');
-            document.getElementById('tomatoEmoji').textContent = '🍅';
-        } else {
-            timeLeft = mode === 'short' ? 5 * 60 : 15 * 60;
-            document.getElementById(mode + 'Btn').classList.add('active');
-            document.getElementById('tomatoEmoji').textContent = '🍃';
-            document.getElementById('standBtn').disabled = false;
-            document.getElementById('backBtn').disabled = true;
+    function addTask() {
+        const input = document.getElementById('newTaskInput');
+        const name = input.value.trim(); if(!name){input.focus();return;}
+        tasks.push({id:Date.now(),name,est:selectedEst,actual:0,done:false});
+        saveTasks(); input.value=''; renderTasks();
+    }
+    function deleteTask(id) {
+        tasks=tasks.filter(t=>t.id!==id);
+        if(activeTaskId===id) clearActiveTask();
+        saveTasks(); renderTasks();
+    }
+    function selectTask(id) {
+        if(timerRunning) return;
+        const task=tasks.find(t=>t.id===id); if(!task||task.done) return;
+        activeTaskId=id;
+        document.getElementById('taskInput').value=task.name;
+        updateCurrentTaskBanner(); renderTasks();
+    }
+    function clearActiveTask() { activeTaskId=null; updateCurrentTaskBanner(); renderTasks(); }
+    function updateCurrentTaskBanner() {
+        const banner=document.getElementById('currentTaskBanner');
+        if(activeTaskId) {
+            const t=tasks.find(t=>t.id===activeTaskId);
+            if(t) {
+                document.getElementById('currentTaskName').textContent=t.name;
+                document.getElementById('currentTaskEst').textContent=`預計 ${t.est} 🍅 · 已用 ${t.actual} 🍅`;
+                banner.style.display='flex'; return;
+            }
         }
-        totalTime = timeLeft;
-        updateDisplay();
-        if (autoStart) toggleTimer();
+        banner.style.display='none';
+    }
+    function renderTasks() {
+        const list=document.getElementById('taskList');
+        const hint=document.getElementById('taskSelectHint');
+        list.innerHTML='';
+        const pending=tasks.filter(t=>!t.done), done=tasks.filter(t=>t.done);
+        hint.style.display = pending.length>0&&!activeTaskId ? 'block':'none';
+        if(!tasks.length){list.innerHTML='<p style="color:#ccc;font-size:0.8rem;text-align:center;">尚未新增任務</p>';return;}
+        [...pending,...done].forEach(task=>{
+            const div=document.createElement('div');
+            div.className='task-item'+(task.id===activeTaskId?' active-task':'')+(task.done?' done-task':'');
+            div.onclick=()=>selectTask(task.id);
+            div.innerHTML=`<span class="task-item-name">${task.name}</span>
+                <span class="task-item-est">${'🍅'.repeat(task.est)}</span>
+                ${task.actual>0?`<span class="task-item-actual">×${task.actual}</span>`:''}
+                <button class="task-del-btn" onclick="event.stopPropagation();deleteTask(${task.id})">✕</button>`;
+            list.appendChild(div);
+        });
+    }
+
+    function setMode(mode, autoStart=false) {
+        currentMode=mode;
+        clearInterval(timerId); timerId=null; timerRunning=false; timerStartedAt=null;
+        document.getElementById('earlyBtn').style.display='none';
+        document.getElementById('endBreakBtn').style.display=mode==='pomo'?'none':'inline-block';
+        document.getElementById('interactionGroup').style.display=mode==='pomo'?'none':'flex';
+        document.getElementById('startBtn').textContent=mode==='pomo'?'開始專注':'開始休息';
+        document.querySelectorAll('.btn-group button').forEach(b=>b.classList.remove('active'));
+        if(mode==='pomo'){
+            timeLeft=25*60; document.getElementById('pomoBtn').classList.add('active');
+            document.getElementById('tomatoEmoji').textContent='🍅';
+        } else {
+            timeLeft=mode==='short'?5*60:15*60;
+            document.getElementById(mode+'Btn').classList.add('active');
+            document.getElementById('tomatoEmoji').textContent='🍃';
+            document.getElementById('standBtn').disabled=false;
+            document.getElementById('backBtn').disabled=true;
+        }
+        totalTime=timeLeft; updateDisplay(); updateTabTitle();
+        if(autoStart) toggleTimer();
     }
 
     function updateDisplay() {
-        const mins = Math.floor(timeLeft / 60);
-        const secs = timeLeft % 60;
-        document.getElementById('timer').textContent = `${mins}:${secs < 10 ? '0' : ''}${secs}`;
-        document.getElementById('tomatoFill').style.height = ((totalTime - timeLeft) / totalTime) * 100 + '%';
+        const m=Math.floor(timeLeft/60), s=timeLeft%60;
+        document.getElementById('timer').textContent=`${m}:${s<10?'0':''}${s}`;
+        document.getElementById('tomatoFill').style.height=((totalTime-timeLeft)/totalTime)*100+'%';
+        updateTabTitle();
     }
 
-    /* ── 計時控制 ── */
+    function tick() {
+        timeLeft--;
+        updateDisplay();
+        if(timeLeft<=0){ clearInterval(timerId); timerId=null; timerRunning=false; completeCycle(false); }
+    }
+
     function toggleTimer() {
-        if (timerId) {
-            clearInterval(timerId); timerId = null;
-            document.getElementById('startBtn').textContent = '繼續';
+        if(timerRunning){
+            clearInterval(timerId); timerId=null; timerRunning=false; timerStartedAt=null;
+            document.getElementById('startBtn').textContent='繼續';
+            updateTabTitle();
         } else {
-            if (currentMode === 'pomo' && !document.getElementById('taskInput').value.trim()) {
-                alert('請輸入任務名稱！'); return;
+            const taskVal=document.getElementById('taskInput').value.trim();
+            if(currentMode==='pomo'&&!taskVal&&!activeTaskId){
+                document.getElementById('taskInput').focus();
+                document.getElementById('taskInput').style.borderColor='var(--primary)';
+                setTimeout(()=>{document.getElementById('taskInput').style.borderColor='#f0f0f0';},1500);
+                return;
             }
-            document.getElementById('startBtn').textContent = '暫停';
-            if (currentMode === 'pomo') document.getElementById('earlyBtn').style.display = 'inline-block';
-            timerId = setInterval(() => {
-                timeLeft--;
-                updateDisplay();
-                if (timeLeft <= 0) {
-                    clearInterval(timerId); timerId = null;
-                    completeCycle(false);
-                }
-            }, 1000);
+            document.getElementById('startBtn').textContent='暫停';
+            if(currentMode==='pomo') document.getElementById('earlyBtn').style.display='inline-block';
+            timerRunning=true; timerId=setInterval(tick,1000); updateTabTitle();
         }
     }
 
-    /* ── 完成週期 ── */
     function completeCycle(isEarly) {
-        const task = document.getElementById('taskInput').value.trim() || '未命名任務';
-
-        if (currentMode === 'pomo') {
-            // 完成任務
-            logAction(task, 'pomo', isEarly);
-            dailyData.totalPomo++;
-            saveData();
-            updateTotalDisplay();
+        const taskInputVal=document.getElementById('taskInput').value.trim();
+        const task=taskInputVal||(activeTaskId?(tasks.find(t=>t.id===activeTaskId)?.name||'未命名任務'):'未命名任務');
+        if(currentMode==='pomo'){
+            const isOOT=!activeTaskId;
+            logAction(task,'pomo',isEarly,isOOT);
+            dailyData.totalPomo++; saveData(); updateTotalDisplay();
             soundDone();
-            showNotification('🍅 任務完成！', `「${task}」已完成，去休息一下吧！`);
-            setMode('short', true);
-
+            showNotification('🍅 任務完成！',`「${task}」已完成，去休息一下吧！`);
+            if(activeTaskId){
+                const t=tasks.find(t=>t.id===activeTaskId);
+                if(t){t.actual++;saveTasks();renderTasks();updateCurrentTaskBanner();}
+            }
+            setMode('short',true);
         } else {
-            // 休息結束
-            const breakLabel = isEarly ? '提早結束休息' : (currentMode === 'short' ? '短休結束' : '長休結束');
-            logAction(breakLabel, 'break');
+            const breakLabel=isEarly?'提早結束休息':(currentMode==='short'?'短休結束':'長休結束');
+            logAction(breakLabel,'break');
             soundBreakEnd();
-            showNotification('✍️ 休息完畢！', '精神飽滿，開始下一個番茄吧！');
+            showNotification('✍️ 休息完畢！','精神飽滿，開始下一個番茄吧！');
             setMode('pomo');
         }
     }
 
-    /* ── 紀錄動作 ── */
-    function logAction(task, type, early = false) {
-        const timestamp = new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
-        dailyData.history.push({ task, time: timestamp, type, early });
-        saveData();
-        renderHistory();
-
-        if (task === '站起來了！') {
-            document.getElementById('standBtn').disabled = true;
-            document.getElementById('backBtn').disabled = false;
-        }
+    function logAction(task,type,early=false,isOOT=false) {
+        const ts=new Date().toLocaleTimeString([],{hour:'2-digit',minute:'2-digit'});
+        dailyData.history.push({task,time:ts,type,early,isOOT});
+        saveData(); renderHistory();
+        if(task==='站起來了！'){document.getElementById('standBtn').disabled=true;document.getElementById('backBtn').disabled=false;}
     }
 
-    /* ── 水量 ── */
     function addWater(ml) {
-        const oldWater = dailyData.water;
-        dailyData.water = Math.min(dailyData.water + ml, 2000);
-        const timestamp = new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
-        dailyData.history.push({ task: `補水 ${ml}ml`, time: timestamp, type: 'water' });
-
-        [500, 1000, 1500, 2000].forEach(m => {
-            if (oldWater < m && dailyData.water >= m) {
-                dailyData.history.push({ task: `🏆 達成 ${m}ml！`, time: timestamp, type: 'milestone' });
+        const old=dailyData.water;
+        dailyData.water=Math.min(dailyData.water+ml,2000);
+        const ts=new Date().toLocaleTimeString([],{hour:'2-digit',minute:'2-digit'});
+        dailyData.history.push({task:`補水 ${ml}ml`,time:ts,type:'water'});
+        [500,1000,1500,2000].forEach(m=>{
+            if(old<m&&dailyData.water>=m){
+                dailyData.history.push({task:`🏆 達成 ${m}ml！`,time:ts,type:'milestone'});
                 showCelebration(`達成 ${m}ml 里程碑！`);
             }
         });
-        saveData();
-        updateWaterDisplay();
-        renderHistory();
+        saveData(); updateWaterDisplay(); renderHistory();
     }
 
-    /* ── 渲染 ── */
     function renderHistory() {
-        const pomoList  = document.getElementById('doneList');
-        const waterList = document.getElementById('waterList');
-        const breakList = document.getElementById('breakList');
-
-        pomoList.innerHTML = '';
-        waterList.innerHTML = '';
-        breakList.innerHTML = '';
-
-        // 倒序，最新在上
-        [...dailyData.history].reverse().forEach(item => {
-            const div = document.createElement('div');
-            div.className = 'done-item';
-
-            if (item.type === 'water') {
-                div.innerHTML = `<span class="timestamp">${item.time}</span><span>💧</span><span>${item.task}</span>`;
+        const pomoList=document.getElementById('doneList');
+        const waterList=document.getElementById('waterList');
+        const breakList=document.getElementById('breakList');
+        pomoList.innerHTML=''; waterList.innerHTML=''; breakList.innerHTML='';
+        [...dailyData.history].reverse().forEach(item=>{
+            const div=document.createElement('div'); div.className='done-item';
+            if(item.type==='water'){
+                div.innerHTML=`<span class="timestamp">${item.time}</span><span>💧</span><span>${item.task}</span>`;
                 waterList.appendChild(div);
-
-            } else if (item.type === 'break') {
-                // 休息紀錄：站起來、走路回來、休息結束等
-                let icon = '🌿';
-                if (item.task.includes('站起來')) icon = '🚶';
-                if (item.task.includes('走路回來')) icon = '🔙';
-                if (item.task.includes('結束') || item.task.includes('完畢')) icon = '✍️';
-                div.innerHTML = `<span class="timestamp">${item.time}</span><span>${icon}</span><span>${item.task}</span>`;
+            } else if(item.type==='break'){
+                let icon='🌿';
+                if(item.task.includes('站起來')) icon='🚶';
+                if(item.task.includes('走路回來')) icon='🔙';
+                if(item.task.includes('結束')||item.task.includes('完畢')) icon='✍️';
+                div.innerHTML=`<span class="timestamp">${item.time}</span><span>${icon}</span><span>${item.task}</span>`;
                 breakList.appendChild(div);
-
-            } else if (item.type === 'milestone') {
-                div.innerHTML = `<span class="timestamp">${item.time}</span><span>👑</span><span class="milestone-tag">${item.task}</span>`;
+            } else if(item.type==='milestone'){
+                div.innerHTML=`<span class="timestamp">${item.time}</span><span>👑</span><span class="milestone-tag">${item.task}</span>`;
                 pomoList.appendChild(div);
-
             } else {
-                // pomo 或其他 → 成就清單
-                div.innerHTML = `<span class="timestamp">${item.time}</span><span>🍅</span><span>${item.task}${item.early ? ' ⚡' : ''}</span>`;
+                const oot=item.isOOT?'<span class="oot-badge">Out of Tomatoes</span>':'';
+                div.innerHTML=`<span class="timestamp">${item.time}</span><span>🍅</span><span>${item.task}${item.early?' ⚡':''}${oot}</span>`;
                 pomoList.appendChild(div);
             }
         });
-
-        if (!pomoList.children.length)  pomoList.innerHTML = '<p style="color:#ccc; font-size:0.8rem;">尚未完成任務</p>';
-        if (!waterList.children.length) waterList.innerHTML = '<p style="color:#ccc; font-size:0.8rem;">尚未補水</p>';
-        if (!breakList.children.length) breakList.innerHTML = '<p style="color:#ccc; font-size:0.8rem;">尚無休息紀錄</p>';
+        if(!pomoList.children.length)  pomoList.innerHTML='<p style="color:#ccc;font-size:0.8rem;">尚未完成任務</p>';
+        if(!waterList.children.length) waterList.innerHTML='<p style="color:#ccc;font-size:0.8rem;">尚未補水</p>';
+        if(!breakList.children.length) breakList.innerHTML='<p style="color:#ccc;font-size:0.8rem;">尚無休息紀錄</p>';
     }
 
     function updateWaterDisplay() {
-        document.getElementById('waterValue').textContent = dailyData.water;
-        document.getElementById('waterLevel').style.height = (dailyData.water / 2000) * 100 + '%';
+        document.getElementById('waterValue').textContent=dailyData.water;
+        document.getElementById('waterLevel').style.height=(dailyData.water/2000)*100+'%';
     }
+    function updateTotalDisplay() { document.getElementById('totalPomoNum').textContent=dailyData.totalPomo; }
 
-    function updateTotalDisplay() {
-        document.getElementById('totalPomoNum').textContent = dailyData.totalPomo;
-    }
-
-    /* ── 通知 & 提示 ── */
     function showCelebration(text) {
-        const msg = document.getElementById('celebration');
-        msg.textContent = `✨ ${text} ✨`;
-        msg.style.display = 'block';
-        setTimeout(() => { msg.style.display = 'none'; }, 3500);
+        const msg=document.getElementById('celebration');
+        msg.textContent=`✨ ${text} ✨`; msg.style.display='block';
+        setTimeout(()=>{msg.style.display='none';},3500);
     }
-
-    function showNotification(title, body) {
-        if (Notification.permission === 'granted') {
-            new Notification(title, { body, icon: '' });
-        }
+    function showNotification(title,body) {
+        if(Notification.permission==='granted') new Notification(title,{body});
     }
-
-    /* ── 重置 & 清除 ── */
-    function resetTimer() { clearInterval(timerId); timerId = null; setMode(currentMode); }
-
+    function resetTimer() { clearInterval(timerId); timerId=null; timerRunning=false; timerStartedAt=null; setMode(currentMode); }
     function clearAllData() {
-        if (confirm('確定要清除今天的番茄鐘與補水紀錄嗎？')) {
-            dailyData = { water: 0, history: [], totalPomo: 0 };
-            saveData();
-            updateWaterDisplay();
-            updateTotalDisplay();
-            renderHistory();
-            resetTimer();
-            showCelebration('紀錄已清空！');
+        if(confirm('確定要清除今天的番茄鐘、任務與補水紀錄嗎？')){
+            dailyData={water:0,history:[],totalPomo:0}; tasks=[]; activeTaskId=null;
+            saveData(); saveTasks();
+            updateWaterDisplay(); updateTotalDisplay();
+            renderHistory(); renderTasks(); updateCurrentTaskBanner();
+            resetTimer(); showCelebration('紀錄已清空！');
         }
     }
-
-    /* ── 模式切換時播放對應音效 & 通知 ── */
-    // Override setMode to hook sounds on auto-start
-    const _origSetMode = setMode;
-    // Intercept completeCycle for short/long break notifications
-    // (已在 completeCycle 中直接處理)
 </script>
 </body>
 </html>
